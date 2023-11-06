@@ -64,7 +64,7 @@ services:
   consumer:
     container_name: consumer
     build:
-      context: ./consumer
+      context: ./services/consumer
       dockerfile: Dockerfile
     environment:
       - KAFKA_TOPIC_NAME=topic_test
@@ -84,7 +84,7 @@ services:
   yolo:
     container_name: yolo
     build:
-      context: ./yoloAPI
+      context: ./services/yoloAPI
       dockerfile: Dockerfile
     environment:
       - KAFKA_TOPIC_NAME=topic_test
@@ -108,7 +108,7 @@ services:
   # publisher:
   #   container_name: publisher
   #   build:
-  #     context: ./publisher
+  #     context: ./services/publisher
   #     dockerfile: Dockerfile
   #   environment:
   #     - KAFKA_TOPIC_NAME=topic_test
