@@ -31,8 +31,8 @@ def send(file_list: List[UploadFile] = File(...), server: MinioServer = Depends(
         img = [cv2.imdecode(np.fromstring(file.file.read(), np.uint8), cv2.IMREAD_COLOR)
                 for file in file_list][0]
         
-        del_ = [file.file.read() for file in file_list]
-        print(type(del_[0]))
+        # del_ = [file.file.read() for file in file_list]
+        # print(type(del_[0]))
 
         img = Image.fromarray(img).convert('RGB')
         out_img = BytesIO()

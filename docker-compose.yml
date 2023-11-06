@@ -60,7 +60,6 @@ services:
       - broker-kafka
     command: server --console-address ":9001" ./data
 
-
   consumer:
     container_name: consumer
     build:
@@ -104,24 +103,6 @@ services:
       - minio
     networks:
       - broker-kafka
-
-  # publisher:
-  #   container_name: publisher
-  #   build:
-  #     context: ./services/publisher
-  #     dockerfile: Dockerfile
-  #   environment:
-  #     - KAFKA_TOPIC_NAME=topic_test
-  #     - KAFKA_SERVER=kafka
-  #     - KAFKA_PORT=29092
-  #   ports:
-  #     - 8000:8000
-  #   restart: "always"
-  #   depends_on:
-  #     - zookeeper
-  #     - kafka
-  #   networks:
-  #     - broker-kafka
 
 networks:
   broker-kafka:

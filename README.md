@@ -10,13 +10,13 @@ You will need Docker installed to follow the next steps. To create and run the i
 The configuration will create a cluster with 3 containers:
 
 - Consumer container
-- Publisher container(yolo container)
+- yolo container
 - kafka container
 - kafdrop container
 - zookeeper container
 - minio comtainer
 
-The Publisher container will create a simple RESTful API application that sends data to Kafka and minio. It will take a few seconds to come up, then will be accessible at `http://localhost:8000`.
+The yolo container will create a simple RESTful API application that sends data to Kafka and minio. Also it has yolo inference. It will take a few seconds to come up, then will be accessible at `http://localhost:8000`.
 
 The Consumer container is a script that aims to wait and receive messages from Kafka.
 
@@ -37,8 +37,6 @@ Below is a project structure created:
 ├── docker-compose.yml
 └── services
     ├── consumer
-    │   └── <simple app>
-    ├── publisher !!!TODO del!!!
     │   └── <simple app>
     └── yoloAPI
         ├── app
