@@ -38,7 +38,7 @@ Below is a project structure created:
 └── services
     ├── consumer
     │   └── <simple app>
-    ├── publisher
+    ├── publisher !!!del!!!
     │   └── <simple app>
     └── yoloAPI
         ├── app
