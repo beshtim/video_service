@@ -43,23 +43,23 @@ Below is a project structure created:
     └── yoloAPI
         ├── app
         │   ├── core
-        │   │   ├── gateways/ # init connections
-        │   │   └── models/ # schemas
+        │   │   ├── gateways/ <# init connections>
+        │   │   └── models/ <# schemas>
         │   │
-        │   ├── dependencies/ # checks existence of instances 
+        │   ├── dependencies/ <# checks existence of instances>
         │   │
-        │   ├── routers/ # API rotes
+        │   ├── routers/ <# API rotes>
         │   │   ├── detect.py
         │   │   ├── dragndrop.py
         │   │   ├── index.py
         │   │   ├── minio.py
         │   │   └── publisher.py
         │   │
-        │   ├── templates/ # html stuff
+        │   ├── templates/ 
         │   │   └── <*.html>
         │   │
-        │   ├── enum.py # EnvironmentVariables
-        │   └── main.py # main :)
+        │   ├── enum.py <# EnvironmentVariables>
+        │   └── main.py
         │
         ├── Dockerfile
         └── requirements.txt
