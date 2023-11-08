@@ -16,7 +16,7 @@ import cv2
 import numpy as np
 
 router = APIRouter(
-    prefix="",
+    prefix="/main",
     tags=["index"]
     )
 
@@ -28,7 +28,7 @@ colors = [tuple([random.randint(0, 255) for _ in range(3)]) for _ in range(100)]
 
 templates = Jinja2Templates(directory = 'app/templates')
 
-@router.get("/")
+@router.get("")
 def home(request: Request):
     ''' Returns html jinja2 template render for home page form
     '''
@@ -38,7 +38,7 @@ def home(request: Request):
             "model_selection_options": model_selection_options,
         })
 
-@router.post("/")
+@router.post("")
 def detect_with_server_side_rendering(request: Request,
                         file_list: List[UploadFile] = File(...), 
                         model_name: str = Form(...),

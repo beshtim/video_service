@@ -103,6 +103,23 @@ services:
       - minio
     networks:
       - broker-kafka
+      
+  # reverse-proxy:
+  #   image: nginx
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+  #   ports:
+  #     - mode: host
+  #       protocol: tcp
+  #       published: 80
+  #       target: 80
+  #   depends_on:
+  #     - minio
+  #     - zookeeper
+  #     - kafka
+  #     - kafdrop
+  #     - consumer
+  #     - yolo
 
 networks:
   broker-kafka:
