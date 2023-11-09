@@ -69,6 +69,11 @@ services:
       - KAFKA_TOPIC_NAME=topic_test
       - KAFKA_SERVER=kafka
       - KAFKA_PORT=29092
+      - TELETOKEN='TOKEN'
+      - MINIO_HOST=minio
+      - MINIO_PORT=9000
+      - MINIO_USER=minioadmin
+      - MINIO_PASSWORD=minioadmin
     ports:
       - 8001:8001
     restart: "always"

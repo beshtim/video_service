@@ -39,7 +39,8 @@ def send(request: Request,
     ):
     
     def process_video(video, model, kafka, minio):
-        
+        frames_timeout = 1000
+
         def minio_post(image_bytes, minio):
             try:
                 found = minio.client.bucket_exists("test")
@@ -78,7 +79,7 @@ def send(request: Request,
             out = model.yolo(batched_frame)
 
             if len(out['pred_classes']) > 1:
-                if send:
+                if frames_timeout == 1000:
                     img = Image.fromarray(frame).convert('RGB')
                     out_img = BytesIO()
                     img.save(out_img, format='png')
@@ -88,8 +89,13 @@ def send(request: Request,
                     out['im_name'] = im_name
                     message = kafka_post(out, kafka)
                     print(message)
+                    frames_timeout-=1
+                elif frames_timeout == 0:
+                    frames_timeout = 1000
                 else:
-                    send = False
+                    frames_timeout -=1
+            else:
+                frames_timeout -=1
 
         cap.release()
 
