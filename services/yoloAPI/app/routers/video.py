@@ -27,7 +27,7 @@ import os
 
 router = APIRouter(
     prefix="",
-    tags=["video"],
+    tags=["index"],
     dependencies=[Depends(get_kafka_instance), Depends(get_minio_instance), Depends(get_yolo_instance)]
     )
 
@@ -38,6 +38,9 @@ class Predictor:
     def create_stream(self, model, video):
         self.stream = self.get_stream(model, video)
         print("stream created")
+
+    def send_data(self,frame, json, kafka, minio):
+        pass
 
     def get_stream(self, model, video): 
         cap = cv2.VideoCapture(video)
@@ -118,26 +121,6 @@ def send(request: Request,
                 "no_camera": False
             })
 
-    # temp = NamedTemporaryFile(delete=False)
-    # try:
-    #     try:
-    #         contents = file.file.read()
-    #         with temp as f:
-    #             f.write(contents);
-    #     except Exception:
-    #         return {"message": "There was an error uploading the file"}
-    #     finally:
-    #         file.file.close()
-    
-    #     res = process_video(yolo, temp.name)  # Pass temp.name to VideoCapture()
-    # except Exception:
-    #     return {"message": "There was an error processing the file"}
-    # finally:
-    #     #temp.close()  # the `with` statement above takes care of closing the file
-    #     os.remove(temp.name)
-        
-    # return res
-
 @router.get("/")
 def video(request: Request):
     return templates.TemplateResponse('stream.html', {
@@ -145,44 +128,4 @@ def video(request: Request):
             "res": False,
             "no_camera": False
         })
-
-def process_video(model, video):
-    cap = cv2.VideoCapture(video)
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            print("Can't receive frame (stream end?). Exiting ...")
-            break
-
-        batched_frame = np.expand_dims(frame, axis=0)
-
-        out = model.yolo(batched_frame)
-        print(out)
-
-    cap.release()
-
-# def get_stream(model, video): 
-#         cap = cv2.VideoCapture(video)
-
-#         if cap is None or not cap.isOpened():
-#             return 'no_camera'
-        
-#         def iter_func():
-#             while cap.isOpened():
-#                 ret, frame = cap.read()  # read the camera frame
-#                 if not ret:
-#                     print("Can't receive frame (stream end?). Exiting ...")
-#                     break
-#                 else:
-#                     batched_frame = np.expand_dims(frame, axis=0)
-
-#                     out = model.yolo(batched_frame)
-#                     print(out)
-#                     ret, buffer = cv2.imencode('.jpg', frame)
-#                     frame = buffer.tobytes()
-#                     yield (b'--frame\r\n'
-#                         b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
-                    
-                    
-#         return iter_func()  # returns generator
 

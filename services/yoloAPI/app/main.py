@@ -7,7 +7,7 @@ from app.core.yolov5.detect_video import YoloBase
 from app.core.models.message import Message
 from app.dependencies.kafka import get_kafka_instance
 from app.enum import EnvironmentVariables
-from app.routers import publisher, detect, dragndrop, index, minio,video
+from app.routers import publisher, detect, dragndrop, index, minio, video, pipeline
 
 
 from dotenv import load_dotenv
@@ -52,23 +52,23 @@ minio_server = MinioServer(
 
 yolo_model = YoloBase(weights='yolov5s.pt')
 
-@app.on_event("startup")
-async def startup_event():
-    await kafka_server.aioproducer.start()
+# @app.on_event("startup")
+# def startup_event():
+#     kafka_server.producer.start()
 
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    await kafka_server.aioproducer.stop()
+# @app.on_event("shutdown")
+# def shutdown_event():
+#     kafka_server.producer.stop()
 
 
-@app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-    response.headers["X-Process-Time"] = str(process_time)
-    return response
+# @app.middleware("http")
+# def add_process_time_header(request: Request, call_next):
+#     start_time = time.time()
+#     response = call_next(request)
+#     process_time = time.time() - start_time
+#     response.headers["X-Process-Time"] = str(process_time)
+#     return response
 
 
 app.include_router(index.router)
@@ -77,3 +77,4 @@ app.include_router(dragndrop.router)
 app.include_router(detect.router)
 app.include_router(minio.router)
 app.include_router(video.router)
+app.include_router(pipeline.router)

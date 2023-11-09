@@ -17,7 +17,7 @@ import numpy as np
 
 router = APIRouter(
     prefix="/main",
-    tags=["index"]
+    tags=["main"]
     )
 
 model_selection_options = ['yolov5s','yolov5m','yolov5l','yolov5x','yolov5n',

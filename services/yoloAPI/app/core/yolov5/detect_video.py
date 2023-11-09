@@ -103,15 +103,17 @@ class YoloPredictor:
         pred = self.model(batch, augment=False, visualize=False)
         pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, self.classes, self.agnostic_nms, max_det=self.max_det)
         # print(pred)
-        out = []
-
-        # Process predictions
+        out = {
+            'pred_boxes':   [],
+            'scores':       [],
+            'pred_classes': [],
+            }        # Process predictions
         for i, det in enumerate(pred):  # per image
             annotator = Annotator(im0, line_width=self.line_thickness, example=str(self.names))
             if len(det): 
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_boxes(batch.shape[2:], det[:, :4], (h, w, c)).round()
-                print(det)
+                # print(det)
 
                 # ==========================================
                 # # Print results
@@ -134,11 +136,11 @@ class YoloPredictor:
 
                 det_objcts = reversed(det).cpu().numpy()
 
-                out.append({
-                    'pred_boxes':   det_objcts[:,:4],
-                    'scores':       det_objcts[:,4],
-                    'pred_classes': det_objcts[:,5],
-                })
+                out = {
+                    'pred_boxes':   det_objcts[:,:4].tolist(),
+                    'scores':       det_objcts[:,4].tolist(),
+                    'pred_classes': det_objcts[:,5].tolist(),
+                }
 
         return out
 
