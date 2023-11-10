@@ -35,7 +35,7 @@ class YoloPredictor:
             device='',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
             view_img=False,  # show results
             nosave=False,  # do not save images/videos
-            classes=None,  # filter by class: --class 0, or --class 0 2 3
+            classes=[0],  # filter by class: --class 0, or --class 0 2 3
             agnostic_nms=False,  # class-agnostic NMS
             update=False,  # update all models
             exist_ok=False,  # existing project/name ok, do not increment
@@ -92,6 +92,12 @@ class YoloPredictor:
                 for_stack.append(im)
             return torch.stack(for_stack)
 
+    def results_to_json(self, det_objcts, model):
+        ''' Converts yolo model output to json (list of list of dicts)'''
+        return [[{"class": int(result[5]),
+                    "class_name": model.model.names[int(result[5])],
+                    "bbox": [int(x) for x in result[:4].tolist()], #convert bbox results to int from float
+                    "confidence": float(result[4])} for result in det_objcts]]
 
     @smart_inference_mode()
     def __call__(self, cv2_image_batch1):
@@ -103,11 +109,15 @@ class YoloPredictor:
         pred = self.model(batch, augment=False, visualize=False)
         pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, self.classes, self.agnostic_nms, max_det=self.max_det)
         # print(pred)
-        out = {
-            'pred_boxes':   [],
-            'scores':       [],
-            'pred_classes': [],
-            }        # Process predictions
+        # out = {
+        #     'pred_boxes':   [],
+        #     'scores':       [],
+        #     'pred_classes': [],
+        #     }        
+        
+        json_results = [[]]
+
+        # Process predictions
         for i, det in enumerate(pred):  # per image
             annotator = Annotator(im0, line_width=self.line_thickness, example=str(self.names))
             if len(det): 
@@ -135,6 +145,8 @@ class YoloPredictor:
                 # ==========================================
 
                 det_objcts = reversed(det).cpu().numpy()
+            
+                json_results = self.results_to_json(det_objcts, self.model)
 
                 out = {
                     'pred_boxes':   det_objcts[:,:4].tolist(),
@@ -142,7 +154,7 @@ class YoloPredictor:
                     'pred_classes': det_objcts[:,5].tolist(),
                 }
 
-        return out
+        return json_results
 
 
 

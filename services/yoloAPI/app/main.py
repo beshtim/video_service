@@ -30,13 +30,6 @@ app = FastAPI(title='Kafka API')
 
 templates = Jinja2Templates(directory = 'app/templates')
 
-model_selection_options = ['yolov5s','yolov5m','yolov5l','yolov5x','yolov5n',
-                        'yolov5n6','yolov5s6','yolov5m6','yolov5l6','yolov5x6']
-
-model_dict = {model_name: None for model_name in model_selection_options} #set up model cache
-
-colors = [tuple([random.randint(0, 255) for _ in range(3)]) for _ in range(100)] #for bbox plotting
-
 kafka_server = Kafka(
     topic=EnvironmentVariables.KAFKA_TOPIC_NAME.get_env(),
     port=EnvironmentVariables.KAFKA_PORT.get_env(),
@@ -52,6 +45,8 @@ minio_server = MinioServer(
 
 yolo_model = YoloBase(weights='yolov5s.pt')
 
+
+# <============ ASYNC KAFKA ============>
 # @app.on_event("startup")
 # def startup_event():
 #     kafka_server.producer.start()
@@ -69,7 +64,7 @@ yolo_model = YoloBase(weights='yolov5s.pt')
 #     process_time = time.time() - start_time
 #     response.headers["X-Process-Time"] = str(process_time)
 #     return response
-
+# <============ =========== ============>
 
 app.include_router(index.router)
 app.include_router(publisher.router)

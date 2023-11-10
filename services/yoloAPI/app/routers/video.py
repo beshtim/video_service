@@ -27,7 +27,7 @@ import os
 
 router = APIRouter(
     prefix="",
-    tags=["index"],
+    tags=["video"],
     dependencies=[Depends(get_kafka_instance), Depends(get_minio_instance), Depends(get_yolo_instance)]
     )
 

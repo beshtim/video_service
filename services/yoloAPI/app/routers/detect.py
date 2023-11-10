@@ -2,9 +2,13 @@ from app.core.gateways.kafka import Kafka
 from app.core.models.message import Message
 from app.dependencies.kafka import get_kafka_instance
 
-from fastapi import APIRouter, Request, Form, File, UploadFile
+from fastapi import APIRouter, Request, Form, File, UploadFile,Depends
 from typing import List, Optional
 from app.utils.helpers import results_to_json, plot_one_box, base64EncodeImage
+
+from app.core.yolov5.detect_video import YoloBase
+from app.dependencies.yolo import get_yolo_instance
+
 import torch
 import cv2
 import random
@@ -12,20 +16,17 @@ import numpy as np
 
 router = APIRouter(
     prefix="/detect",
-    tags=["detect"]
+    tags=["detect"],
+    dependencies=[Depends(get_yolo_instance)]
     )
 
 colors = [tuple([random.randint(0, 255) for _ in range(3)]) for _ in range(100)] #for bbox plotting
-model_selection_options = ['yolov5s','yolov5m','yolov5l','yolov5x','yolov5n',
-                        'yolov5n6','yolov5s6','yolov5m6','yolov5l6','yolov5x6']
-model_dict = {model_name: None for model_name in model_selection_options} #set up model cache
 
 @router.post("")
 def detect_via_api(request: Request,
                 file_list: List[UploadFile] = File(...), 
-                model_name: str = Form(...),
-                img_size: Optional[int] = Form(640),
-                download_image: Optional[bool] = Form(False)):
+                download_image: Optional[bool] = Form(False),
+                yolo: YoloBase = Depends(get_yolo_instance)):
     
     '''
     Requires an image file upload, model name (ex. yolov5s). 
@@ -39,9 +40,6 @@ def detect_via_api(request: Request,
     Intended for API usage.
     '''
 
-    if model_dict[model_name] is None:
-        model_dict[model_name] = torch.hub.load('ultralytics/yolov5', model_name, pretrained=True)
-    
     img_batch = [cv2.imdecode(np.fromstring(file.file.read(), np.uint8), cv2.IMREAD_COLOR)
                 for file in file_list]
 
@@ -49,8 +47,7 @@ def detect_via_api(request: Request,
     #using cvtColor instead of [...,::-1] to keep array contiguous in RAM
     img_batch_rgb = [cv2.cvtColor(img, cv2.COLOR_BGR2RGB) for img in img_batch]
     
-    results = model_dict[model_name](img_batch_rgb, size = img_size) 
-    json_results = results_to_json(results, model_dict[model_name])
+    json_results = yolo.yolo(img_batch_rgb)
 
     if download_image:
         #server side render the image with bounding boxes
