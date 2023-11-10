@@ -1,5 +1,5 @@
 import logging
-from json import loads
+from json import loads, load
 
 from app.enum import EnvironmentVariables as EnvVariables
 
@@ -28,20 +28,26 @@ def main():
             )
 
         for message in consumer:
-            bot.send_message(145590903, "%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
+
+            with open("/consumer/app/volume/pseudo_db.json", "r") as jsonFile:
+                data = load(jsonFile)
+
+            for i in data['users']:
+                bot.send_message(i, "%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
                                                  message.offset, message.key, message.value))
             
-            bucket = 'test'
-            im_name = message.value['description']
+            
+            # bucket = 'test'
+            # im_name = message.value['description']
 
-            try:
-                response = minio.get_object(bucket, im_name)
-                im_bytes = response.read()
-            finally:
-                response.close()
-                response.release_conn()
+            # try:
+            #     response = minio.get_object(bucket, im_name)
+            #     im_bytes = response.read()
+            # finally:
+            #     response.close()
+            #     response.release_conn()
 
-            bot.send_photo(145590903, photo=im_bytes)
+            # bot.send_photo(145590903, photo=im_bytes)
             
             print("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
                                                  message.offset, message.key, message.value))

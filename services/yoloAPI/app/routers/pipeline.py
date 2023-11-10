@@ -77,7 +77,8 @@ def send(request: Request,
 
             out = model.yolo(batched_frame)
             print(out)
-            if len(out[0]) > 1: # TODO
+
+            if len(out[0]) > 0: # TODO
                 print("ADD LOGIC HERE")
                     # img = Image.fromarray(frame).convert('RGB')
                     # out_img = BytesIO()

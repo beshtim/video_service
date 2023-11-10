@@ -35,14 +35,22 @@ services:
       # KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
       # KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       # KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: nc -z localhost 9092 || exit -1
+      start_period: 15s
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   kafdrop:
     image: obsidiandynamics/kafdrop:3.27.0
     networks:
       - broker-kafka
     depends_on:
-      - kafka
-      - zookeeper
+      kafka:
+        condition: service_healthy
+      zookeeper:
+        condition: service_started
     ports:
       - 19000:9000
     environment:
@@ -59,6 +67,17 @@ services:
     networks:
       - broker-kafka
     command: server --console-address ":9001" ./data
+
+  telebot:
+    container_name: telebot
+    build:
+      context: ./services/telebot
+      dockerfile: Dockerfile
+    restart: "always"
+    volumes:
+      - ./services/volume/:/volume
+    networks:
+      - broker-kafka
 
   consumer:
     container_name: consumer
@@ -82,6 +101,8 @@ services:
       - kafka
       - yolo
       - minio
+    volumes:
+      - ./services/volume/:/consumer/app/volume
     networks:
       - broker-kafka
 
@@ -103,9 +124,10 @@ services:
       - 8000:8000
     restart: "always"
     depends_on:
-      - zookeeper
-      - kafka
-      - minio
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_started
     networks:
       - broker-kafka
 
