@@ -39,7 +39,6 @@ def send(request: Request,
     ):
     
     def process_video(video, model, kafka, minio):
-        frames_timeout = 1000
 
         def minio_post(image_bytes, minio):
             try:
@@ -77,25 +76,18 @@ def send(request: Request,
             batched_frame = np.expand_dims(frame, axis=0)
 
             out = model.yolo(batched_frame)
+            print(out)
+            if len(out[0]) > 1: # TODO
+                print("ADD LOGIC HERE")
+                    # img = Image.fromarray(frame).convert('RGB')
+                    # out_img = BytesIO()
+                    # img.save(out_img, format='png')
+                    # out_img.seek(0)
 
-            if len(out['pred_classes']) > 1:
-                if frames_timeout == 1000:
-                    img = Image.fromarray(frame).convert('RGB')
-                    out_img = BytesIO()
-                    img.save(out_img, format='png')
-                    out_img.seek(0)
-
-                    im_name = minio_post(out_img, minio)
-                    out['im_name'] = im_name
-                    message = kafka_post(out, kafka)
-                    print(message)
-                    frames_timeout-=1
-                elif frames_timeout == 0:
-                    frames_timeout = 1000
-                else:
-                    frames_timeout -=1
-            else:
-                frames_timeout -=1
+                    # im_name = minio_post(out_img, minio)
+                    # out.append(im_name)
+                    # message = kafka_post(out, kafka)
+                    # print(message)
 
         cap.release()
 
