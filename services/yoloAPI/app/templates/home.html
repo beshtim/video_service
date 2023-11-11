@@ -8,7 +8,7 @@ Implements a simple Bootstrap 5 form submission interface for YOLOv5 detection.
 
 {% block content %}
 <div class="m-2">
-  <h5>Upload image(s) and select a YOLOv5 model</h5>
+  <h5>Upload image(s) and select camera</h5>
 
   <hr/>
 
@@ -19,7 +19,7 @@ Implements a simple Bootstrap 5 form submission interface for YOLOv5 detection.
     </div>
     <div class="my-2">
       <div class="form-group">
-        <label>Select YOLO Model</label>
+        <label>Select camera name</label>
       </div>
       <select class="form-select w-auto" name="model_name">
         {% for selection in model_selection_options %}
@@ -27,10 +27,10 @@ Implements a simple Bootstrap 5 form submission interface for YOLOv5 detection.
         {% endfor %}      
       </select>
     </div>
-    <div class="my-2">
+    <!-- <div class="my-2">
       <label for="img_size_input" class="form-label">Model Inference Size</label>
       <input type="text" class="form-control w-auto" id="img_size_input" name="img_size" value="640">
-    </div>
+    </div> -->
 
     <button class="btn btn-primary" type="submit">Submit</button>
   </form>

@@ -14,7 +14,7 @@ router = APIRouter(
 
 
 @router.post("")
-async def send(data: Message, server: Kafka = Depends(get_kafka_instance)):
+async def check_kafka_connection(data: Message, server: Kafka = Depends(get_kafka_instance)):
     try:
         topic_name = server._topic
         server.producer.send(topic_name, data.dict())

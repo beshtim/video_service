@@ -20,7 +20,8 @@ router = APIRouter(
     )
 
 @router.post("")
-def send(file_list: List[UploadFile] = File(...), server: MinioServer = Depends(get_minio_instance)):
+def check_minio_connection(file_list: List[UploadFile] = File(...), server: MinioServer = Depends(get_minio_instance)):
+    '''Check minio connection sends test.png to test bucket'''
     try:
         found = server.client.bucket_exists("test")
         if not found:
@@ -31,7 +32,7 @@ def send(file_list: List[UploadFile] = File(...), server: MinioServer = Depends(
         img = [cv2.imdecode(np.fromstring(file.file.read(), np.uint8), cv2.IMREAD_COLOR)
                 for file in file_list][0]
         
-        img = Image.fromarray(img).convert('RGB')
+        img = Image.fromarray(img)
         out_img = BytesIO()
         img.save(out_img, format='png')
         out_img.seek(0) 

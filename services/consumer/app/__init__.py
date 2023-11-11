@@ -33,23 +33,32 @@ def main():
                 data = load(jsonFile)
 
             for i in data['users']:
-                bot.send_message(i, "%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
-                                                 message.offset, message.key, message.value))
+                # bot.send_message(i, "%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
+                #                                  message.offset, message.key, message.value))
             
             
-            # bucket = 'test'
-            # im_name = message.value['description']
+                if "image_name" in message.value.keys():
+                    
+                    bucket = 'test'
+                    im_name = message.value['image_name']
+                    max_percent = message.value['max_percent']
+                    text_message = message.value['text_message']
+                    camera_name = message.value['camera_name']
 
-            # try:
-            #     response = minio.get_object(bucket, im_name)
-            #     im_bytes = response.read()
-            # finally:
-            #     response.close()
-            #     response.release_conn()
+                    bot.send_message(i, f'{text_message} | On camera {camera_name}')
 
-            # bot.send_photo(145590903, photo=im_bytes)
-            
-            print("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
+                    try:
+                        response = minio.get_object(bucket, im_name)
+                        im_bytes = response.read()
+                        bot.send_photo(i, photo=im_bytes)   
+                        response.close()
+                        response.release_conn()
+                    except Exception as e:
+                        print(f"Error with getting image from minio {e}")
+                    
+                else:
+                    bot.send_message(i, f"Didnt find image_name in json: {message.value}")
+                    print("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
                                                  message.offset, message.key, message.value))
 
     except Exception as e:

@@ -1,60 +1,78 @@
-## How to use
+## Как использовать
 
-### Using Docker Compose 
-You will need Docker installed to follow the next steps. To create and run the image use the following command:
+### Docker Compose
+Для выполнения следующих шагов вам понадобится установленный Docker. Для создания и запуска образа используйте следующую команду:
 
 ```bash
 > docker-compose up --build
 ```
 
-The configuration will create a cluster with 3 containers:
+Конфигурация создаст кластер с 7 контейнерами:
 
-- Consumer container
-- yolo container
-- kafka container
-- kafdrop container
-- zookeeper container
-- minio comtainer
+- consumer - Потребитель: модель слушающий сервер kafka и обрабатывающий события 
+- yolo - Модуль компьютерного зрения с FastAPI внутри
+- kafka - сервер брокера-кафки
+- kafdrop - сервер с UI для кафки
+- zookeeper - модуль управляющий кластером кафки 
+- minio - Сервер медиа-зранилища
+- telebot - телеграмм бот для демонстрации
 
-The yolo container will create a simple RESTful API application that sends data to Kafka and minio. Also it has yolo inference. It will take a few seconds to come up, then will be accessible at `http://localhost:8000`.
+Контейнер yolo(основной контейнер для демонстрации) создаст RESTful API, который отправляет данные в Kafka и Minio. После поднятия будет доступен по адресу `http://localhost:8000`.
 
-The Consumer container is a script that aims to wait and receive messages from Kafka.
+Контейнер Consumer — это скрипт, предназначенный для ожидания и получения сообщений от Kafka.
 
-The kafdrop container will provide acess to  web UI for viewing Kafka topics and browsing consumer groups that can be accessed at `http://localhost:19000`.
+Контейнер kafdrop предоставит доступ к веб-интерфейсу для просмотра тем Kafka и просмотра групп потребителей, доступ к которым можно получить по адресу `http://localhost:19000`.
 
-Minio S3 web UI for checking buckets and data can be accessed at `http://localhost:9001`
+Доступ к веб-интерфейсу Minio S3 для проверки данных можно получить по адресу `http://localhost:9001`. 
+``` 
+user: minioadmin | psw: minioadmin
+```
 
 ### FastAPI Swagger
 
-The swagger, an automatic interactive API documentation, will be accessible at `http://localhost:8000/docs`
+Swagger - интерактивная документация по API, будет доступна по адресу `http://localhost:8000/docs`.
 
 
-## Project Structure
-Below is a project structure created:
+## Структура проекта
+Ниже представлена созданная структура проекта:
 ```cmd
 .
 ├── README.md
 ├── docker-compose.yml
+├── weights/ <# weight folder>
+├── data/ <# sample images / video>
 └── services
     ├── consumer
-    │   └── <simple app>
+    │   └── <kafka consumer>
+    │
+    ├── telebot
+    │   └── <telegram bot>
+    │   
+    ├── volume
+    │   └── <pseudo_db for telegram bot>
+    │
     └── yoloAPI
         ├── app
         │   ├── core
         │   │   ├── gateways/ <# init connections>
+        │   │   ├── yolov5/ <# model>
         │   │   └── models/ <# schemas>
         │   │
         │   ├── dependencies/ <# checks existence of instances>
         │   │
         │   ├── routers/ <# API rotes>
-        │   │   ├── detect.py
-        │   │   ├── dragndrop.py
-        │   │   ├── index.py
-        │   │   ├── minio.py
-        │   │   └── publisher.py
+        │   │   ├── detect.py <# detect | api method>
+        │   │   ├── images.py <# images inference>
+        │   │   ├── minio.py <# check minio connection | api method>
+        │   │   ├── pipeline.py <# video inference | api method>
+        │   │   ├── publisher.py <# check kafka connection | api method >
+        │   │   └── video.py <video inference>
         │   │
         │   ├── templates/ 
         │   │   └── <*.html>
+        │   │
+        │   ├── utils/ 
+        │   │   └── helpers.py <# usefull functions>
         │   │
         │   ├── enum.py <# EnvironmentVariables>
         │   └── main.py
@@ -63,21 +81,15 @@ Below is a project structure created:
         └── requirements.txt
 ```
 
-## Environment Variables
-Listed below are the environment variables needed to run the application. They can be included in docker-compose or to run locally, it's necessary to create an `.env` file in the root of the Publisher and Consumer service folders.
-
-- Publisher:
-```bash
-KAFKA_TOPIC_NAME=
-KAFKA_SERVER=
-KAFKA_PORT=
-```
+## Переменные среды
+Ниже перечислены переменные среды, необходимые для запуска приложения. Их нужно включить в docker-compose(уже настроены в docker-compose).
 
 - Consumer:
 ```bash
 KAFKA_TOPIC_NAME=
 KAFKA_SERVER=
 KAFKA_PORT=
+TELETOKEN=
 ```
 
 - YOLO
@@ -91,9 +103,13 @@ MINIO_USER=
 MINIO_PASSWORD=
 ```
 
+- Telebot
+```bash
+TELETOKEN=
+```
 
-## Help and Resources
-You can read more about the tools documentation:
+## Ресурсы
+Вы можете прочитать больше в документациях к инструментам:
 
 - [aiokafka](https://aiokafka.readthedocs.io/en/stable/ka)
 - [Docker](https://docs.docker.com/get-started/overview/)

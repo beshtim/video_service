@@ -1,5 +1,4 @@
 *.mp4
-danger_zones/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

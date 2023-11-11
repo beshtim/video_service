@@ -1,12 +1,13 @@
-import argparse
-import csv
+
+
 import os
-import platform
+import re
 import sys
 from pathlib import Path
 from typing import Any
-
 import torch
+from collections import defaultdict
+from shapely.geometry import Point, Polygon
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
@@ -24,8 +25,62 @@ from utils.torch_utils import select_device, smart_inference_mode
 from utils.augmentations import letterbox
 import numpy as np
 
-class YoloPredictor:
+class DangerZonesDetector:
+    def __init__(self, path2fol) -> None:
+        self.path2fol = path2fol
+        print('Loading danger zones ...')
+        self.zones = self._init_danger_zone()
+        print('Done!')
+
+
+    def get_alert(self, camera_name, bbox):
+        danger_zone_poly = self.zones
+        max_intersection = 0
+        for poly in danger_zone_poly[camera_name]:
+            intersection = self._box_poly_intersect(bbox, poly)
+            if intersection > max_intersection:
+                max_intersection = intersection
+
+        if max_intersection == 0:
+            return max_intersection, f'В опасной зоне людей не найдено.'
+        elif 0 < max_intersection < 0.15:
+            return max_intersection, f'Обнаружено нахождение в опасной зоне на {round(max_intersection, 2) * 100} %'
+        elif 0.15 <= max_intersection < 0.5:
+            return max_intersection, f'Внимание! Обнаружено нахождение в опасной зоне на {round(max_intersection, 2) * 100} %'
+        else:
+            return max_intersection, f'Тревога! Обнаружено критическое нахождение в опасной зоне на {round(max_intersection, 2) * 100} %'
+
+    def _box_poly_intersect(self, box, poly):
+        p1 = Point(box[0], box[1])
+        p2 = Point(box[0], box[3])
+        p3 = Point(box[2], box[3])
+        p4 = Point(box[2], box[1])
+        pointList = [p1, p2, p3, p4]
+        box_coord = pointList
+        boxp = Polygon(box_coord) # [[-1,-2], [-1,2], [1,2], [1,-2]]
+        polyp = Polygon(poly)
+        if boxp.intersects(polyp):
+            return boxp.intersection(polyp).area / boxp.area # 0 - 1
+        else:
+            return 0
+    
+    def _init_danger_zone(self):
+        danger_zone_polies = defaultdict(list)
+
+        camera_names = [i.replace('danger_', "").replace('.txt', '') for i in os.listdir(self.path2fol)]
+        for camera_name in camera_names:
+            txt_path = os.path.join(self.path2fol, f'danger_{camera_name}.txt')
+            with open(txt_path) as f:
+                poly = np.array([int(re.sub("[^0-9]", "",i)) for i in f.read().split(",")]).reshape(-1, 2)
+                if 'zone' in txt_path:
+                    camera_name = camera_name.split('_zone')[0]
+                danger_zone_polies[camera_name].append(poly)
+
+        return danger_zone_polies
+
+class YoloPredictor(DangerZonesDetector):
     def __init__(self,
+            path_to_danger_zones="/publisher/danger_zones",
             weights=ROOT / 'yolov5s.pt',  # model path or triton URL
             data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
             imgsz=(640, 640),  # inference size (height, width)
@@ -46,6 +101,7 @@ class YoloPredictor:
             dnn=False,  # use OpenCV DNN for ONNX inference
             vid_stride=1,  # video frame-rate stride
         ) -> None:
+        DangerZonesDetector.__init__(self, path_to_danger_zones)
 
         # Load model
         device = select_device(device)
@@ -229,15 +285,24 @@ class YoloBase:
     def __init__(
             self,
             weights='yolov5s.pt',
+            imgsz=(640, 640),  
+            conf_thres=0.25,  
+            iou_thres=0.45,
             ) -> None:
         
         self._weights = weights
+        self._imgsz = imgsz
+        self._conf_thres = conf_thres
+        self._iou_thres = iou_thres
         self.yolo = self.create_model()
         YoloBase.instance = self
 
     def create_model(self):
         return YoloPredictor(
-                weights = self._weights
+                weights = self._weights,
+                imgsz = self._imgsz,
+                conf_thres = self._conf_thres,
+                iou_thres = self._iou_thres
             )
 
 if __name__ == '__main__':

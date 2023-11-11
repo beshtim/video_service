@@ -7,7 +7,7 @@ from app.core.yolov5.detect_video import YoloBase
 from app.core.models.message import Message
 from app.dependencies.kafka import get_kafka_instance
 from app.enum import EnvironmentVariables
-from app.routers import publisher, detect, dragndrop, index, minio, video, pipeline
+from app.routers import publisher, detect, images, minio, video, pipeline
 
 
 from dotenv import load_dotenv
@@ -43,7 +43,12 @@ minio_server = MinioServer(
             psw=EnvironmentVariables.MINIO_PASSWORD.get_env(),
 )
 
-yolo_model = YoloBase(weights='yolov5s.pt')
+yolo_model = YoloBase(
+    weights='/weights/medium_1024.pt',
+    imgsz=(1024,1024),
+    conf_thres=0.6,
+    iou_thres=0.5,
+    )
 
 
 # <============ ASYNC KAFKA ============>
@@ -66,9 +71,8 @@ yolo_model = YoloBase(weights='yolov5s.pt')
 #     return response
 # <============ =========== ============>
 
-app.include_router(index.router)
+app.include_router(images.router)
 app.include_router(publisher.router)
-app.include_router(dragndrop.router)
 app.include_router(detect.router)
 app.include_router(minio.router)
 app.include_router(video.router)
