@@ -114,7 +114,7 @@ services:
       context: ./services/yoloAPI
       dockerfile: Dockerfile
     environment:
-      - KAFKA_TOPIC_NAME=topic_test
+      - KAFKA_TOPIC_NAME=events
       - KAFKA_SERVER=kafka
       - KAFKA_PORT=29092
 

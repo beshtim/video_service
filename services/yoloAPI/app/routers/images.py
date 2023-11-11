@@ -1,7 +1,6 @@
 from PIL import Image
 from io import BytesIO
 
-
 from app.core.yolov5.detect_video import YoloBase
 from app.dependencies.yolo import get_yolo_instance
 

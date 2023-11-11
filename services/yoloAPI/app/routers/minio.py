@@ -1,10 +1,5 @@
-import json
-from minio import Minio
-import os
-
 from app.core.gateways.minio import MinioServer
 from app.dependencies.minio import get_minio_instance
-from app.core.models.message import Message
 
 from fastapi import APIRouter, Depends, UploadFile, File
 from typing import List

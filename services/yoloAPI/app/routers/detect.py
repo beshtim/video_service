@@ -1,15 +1,10 @@
-from app.core.gateways.kafka import Kafka
-from app.core.models.message import Message
-from app.dependencies.kafka import get_kafka_instance
-
-from fastapi import APIRouter, Request, Form, File, UploadFile,Depends
+from fastapi import APIRouter, Request, Form, File, UploadFile, Depends
 from typing import List, Optional
-from app.utils.helpers import results_to_json, plot_one_box, base64EncodeImage
+from app.utils.helpers import plot_one_box, base64EncodeImage
 
 from app.core.yolov5.detect_video import YoloBase
 from app.dependencies.yolo import get_yolo_instance
 
-import torch
 import cv2
 import random
 import numpy as np

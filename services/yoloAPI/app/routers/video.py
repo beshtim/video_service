@@ -9,7 +9,7 @@ from app.dependencies.yolo import get_yolo_instance
 
 from app.utils.helpers import draw_poly, plot_one_box, minio_post, kafka_post
 
-from fastapi import APIRouter, Depends, UploadFile, File, Query, Request, Form
+from fastapi import APIRouter, Depends, UploadFile, File, Request, Form
 from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
 from tempfile import NamedTemporaryFile

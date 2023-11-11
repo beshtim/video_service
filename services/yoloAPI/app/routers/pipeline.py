@@ -1,5 +1,4 @@
 from app.core.gateways.kafka import Kafka
-from app.core.models.message import Message, Camera
 from app.dependencies.kafka import get_kafka_instance
 
 from app.core.gateways.minio import MinioServer
@@ -8,12 +7,11 @@ from app.dependencies.minio import get_minio_instance
 from app.core.yolov5.detect_video import YoloBase
 from app.dependencies.yolo import get_yolo_instance
 
-from fastapi import APIRouter, Depends, UploadFile, File, Query, Request, Form
+from fastapi import APIRouter, Depends, UploadFile, File, Request
 from tempfile import NamedTemporaryFile
 
 from app.utils.helpers import plot_one_box, draw_poly, kafka_post, minio_post
 
-from datetime import datetime
 from io import BytesIO
 from PIL import Image
 import numpy as np
