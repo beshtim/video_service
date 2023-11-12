@@ -29,12 +29,7 @@ minio_server = MinioServer(
             psw=EnvironmentVariables.MINIO_PASSWORD.get_env(),
 )
 
-yolo_model = YoloBase(
-    weights='/weights/medium_1024.pt',
-    imgsz=(1024,1024),
-    conf_thres=0.7,
-    iou_thres=0.5,
-    )
+yolo_model = YoloBase()
 
 app.include_router(images.router)
 app.include_router(publisher.router)

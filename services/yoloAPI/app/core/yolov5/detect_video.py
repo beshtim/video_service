@@ -78,9 +78,8 @@ class DangerZonesDetector:
 
         return danger_zone_polies
 
-class YoloPredictor(DangerZonesDetector):
+class YoloPredictor:
     def __init__(self,
-            path_to_danger_zones="/publisher/danger_zones",
             weights=ROOT / 'yolov5s.pt',  # model path or triton URL
             data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
             imgsz=(640, 640),  # inference size (height, width)
@@ -90,7 +89,7 @@ class YoloPredictor(DangerZonesDetector):
             device='',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
             view_img=False,  # show results
             nosave=False,  # do not save images/videos
-            classes=[0],  # filter by class: --class 0, or --class 0 2 3
+            classes=[0],  # filter by class: --class 0, or --class 0 2 3 #TODO
             agnostic_nms=False,  # class-agnostic NMS
             update=False,  # update all models
             exist_ok=False,  # existing project/name ok, do not increment
@@ -101,7 +100,6 @@ class YoloPredictor(DangerZonesDetector):
             dnn=False,  # use OpenCV DNN for ONNX inference
             vid_stride=1,  # video frame-rate stride
         ) -> None:
-        DangerZonesDetector.__init__(self, path_to_danger_zones)
 
         # Load model
         device = select_device(device)
@@ -164,14 +162,14 @@ class YoloPredictor(DangerZonesDetector):
 
         pred = self.model(batch, augment=False, visualize=False)
         pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, self.classes, self.agnostic_nms, max_det=self.max_det)
-        # print(pred)
-        # out = {
-        #     'pred_boxes':   [],
-        #     'scores':       [],
-        #     'pred_classes': [],
-        #     }        
         
         json_results = [[]]
+
+        # out = {
+        #         'pred_boxes':   [],
+        #         'scores':       [],
+        #         'pred_classes': [],
+        #         }
 
         # Process predictions
         for i, det in enumerate(pred):  # per image
@@ -188,7 +186,7 @@ class YoloPredictor(DangerZonesDetector):
                 #     s += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 # # Write results
-                for *xyxy, conf, cls in reversed(det): # all detections
+                for *xyxy, conf, cls in reversed(det): # all detections #TODO plotting boxes
                     c = int(cls)  # integer class
                     label = self.names[c] if self.hide_conf else f'{self.names[c]}'
                     confidence = float(conf)
@@ -204,13 +202,13 @@ class YoloPredictor(DangerZonesDetector):
             
                 json_results = self.results_to_json(det_objcts, self.model)
 
-                out = {
-                    'pred_boxes':   det_objcts[:,:4].tolist(),
-                    'scores':       det_objcts[:,4].tolist(),
-                    'pred_classes': det_objcts[:,5].tolist(),
-                }
+                # out = {
+                #     'pred_boxes':   det_objcts[:,:4].tolist(),
+                #     'scores':       det_objcts[:,4].tolist(),
+                #     'pred_classes': det_objcts[:,5].tolist(),
+                # }
 
-        return json_results
+        return json_results #TODO unify
 
 
 

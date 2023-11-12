@@ -28,7 +28,7 @@ router = APIRouter(
     dependencies=[Depends(get_kafka_instance), Depends(get_minio_instance), Depends(get_yolo_instance)]
     )
 
-colors = [tuple([random.randint(0, 255) for _ in range(3)]) for _ in range(10)]
+colors = [tuple([random.randint(0, 255) for _ in range(3)]) for _ in range(100)]
 
 class Predictor:
     def __init__(self):
@@ -44,108 +44,22 @@ class Predictor:
             return 'no_camera'
 
         def iter_func():
-            cnt = 0
-            frame_timeout=200
-            frame_timeout_bool = True
             while cap.isOpened():
                 ret, frame = cap.read()  # read the camera frame
-                frame_num = cap.get(cv2.CAP_PROP_POS_FRAMES)
+                # frame_num = cap.get(cv2.CAP_PROP_POS_FRAMES)
                 if not ret:
                     print("Can't receive frame (stream end?). Exiting ...")
                     break
 
                 img_batch = np.expand_dims(frame, axis=0)
 
-                json_results = yolo.yolo(img_batch) #TODO check need RGB or BGR
-
-                camera_name = 'demo' #camera.dict()['camera_name']
-
-                # for id, (img, bbox_list) in enumerate(zip(img_batch, json_results)): # per frame
-                    # print(bbox_list) # [{'class': 0, 'class_name': 'person', 'bbox': [1120, 356, 1289, 646], 'confidence': 0.29738280177116394}]
-                    
-                send_requests = False
-                request_template = {"image_name": "", "max_percent": 0, "text_message": "", "camera_name": ""}
-                for obj in json_results[0]:
-                    label = f'{obj["class_name"]} {obj["confidence"]:.2f}'
-                    if camera_name in yolo.yolo.zones.keys():
-                        draw_poly(frame, yolo.yolo.zones[camera_name])
-                        inter_percent, text_message = yolo.yolo.get_alert(camera_name, obj['bbox'])
-                        if inter_percent > 0.15:
-                            plot_one_box(obj['bbox'], frame, label=label, color=(0,0,255), line_thickness=3)
-                            send_requests = True
-
-                            if inter_percent > request_template["max_percent"]: # filling template 
-                                request_template["max_percent"] = inter_percent
-                                request_template["text_message"] = text_message
-                            request_template["camera_name"] = camera_name
-
-                        else:
-                            plot_one_box(obj['bbox'], frame, label=label, color=(0,255,0), line_thickness=3)
-                    else:
-                        plot_one_box(obj['bbox'], frame, label=label, 
-                            color=colors[int(obj['class'])], line_thickness=3)
-                            
-                    if send_requests:
-                        if frame_timeout_bool:
-                            imgb = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                            out_img = BytesIO()
-                            imgb.save(out_img, format='jpeg')
-                            out_img.seek(0)
-
-                            im_name = minio_post(out_img, minio)
-                            request_template['image_name'] = im_name
-
-                            message = kafka_post(request_template, kafka)
-                            print(message)
-
-                            cnt = frame_num
-                            frame_timeout_bool =False
-
-                if frame_num == cnt + frame_timeout:
-                    frame_timeout_bool = True
+                out = yolo.yolo(img_batch)
+                print(out)
 
                 ret, buffer = cv2.imencode('.jpg', frame)
                 frame = buffer.tobytes()
                 yield (b'--frame\r\n'
                     b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-                        # if send_requests:
-                        #     imgb = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-                        #     out_img = BytesIO()
-                        #     imgb.save(out_img, format='jpeg')
-                        #     out_img.seek(0)
-
-                        #     im_name = minio_post(out_img, minio)
-                        #     request_template['image_name'] = im_name
-
-                        #     message = kafka_post(request_template, kafka)
-                        #     print(message)
-
-                        #     cnt = frame_num
-                        #     frame_timeout_bool =False
-
-                # if frame_num == cnt + frame_timeout:
-                #     frame_timeout_bool = True
-
-      
-
-
-        # def iter_func():
-        #     while cap.isOpened():
-        #         ret, frame = cap.read()  # read the camera frame
-        #         if not ret:
-        #             print("Can't receive frame (stream end?). Exiting ...")
-        #             break
-        #         else:
-        #             batched_frame = np.expand_dims(frame, axis=0)
-
-        #             out = model.yolo(batched_frame)
-
-        #             ret, buffer = cv2.imencode('.jpg', frame)
-        #             frame = buffer.tobytes()
-        #             yield (b'--frame\r\n'
-        #                 b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
-                    
                     
         return iter_func()  # returns generator
 

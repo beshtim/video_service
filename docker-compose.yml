@@ -68,19 +68,6 @@ services:
       - broker-kafka
     command: server --console-address ":9001" ./data
 
-  telebot:
-    container_name: telebot
-    build:
-      context: ./services/telebot
-      dockerfile: Dockerfile
-    restart: "always"
-    environment:
-      - TELETOKEN=6878305086:AAH_rrBGyyUpYiV9WAmUqzLybLEHvll-uoM
-    volumes:
-      - ./services/volume/:/volume
-    networks:
-      - broker-kafka
-
   consumer:
     container_name: consumer
     build:
@@ -90,7 +77,7 @@ services:
       - KAFKA_TOPIC_NAME=events
       - KAFKA_SERVER=kafka
       - KAFKA_PORT=29092
-      - TELETOKEN=6878305086:AAH_rrBGyyUpYiV9WAmUqzLybLEHvll-uoM
+
       - MINIO_HOST=minio
       - MINIO_PORT=9000
       - MINIO_USER=minioadmin
@@ -103,8 +90,6 @@ services:
       - kafka
       - yolo
       - minio
-    volumes:
-      - ./services/volume/:/consumer/app/volume
     networks:
       - broker-kafka
 
@@ -125,8 +110,6 @@ services:
     ports:
       - 8000:8000
     restart: "always"
-    volumes:
-      - ./weights:/weights
     depends_on:
       kafka:
         condition: service_healthy

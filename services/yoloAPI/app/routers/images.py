@@ -25,12 +25,7 @@ router = APIRouter(
     dependencies=[Depends(get_kafka_instance), Depends(get_minio_instance), Depends(get_yolo_instance)]
     )
 
-colors = [tuple([random.randint(0, 255) for _ in range(3)]) for _ in range(10)] #for bbox plotting
-
-model_selection_options = ['name','DpR-Csp-uipv-ShV-V1', 'Pgp-com2-K-1-0-9-36', 'Pgp-lpc2-K-0-1-38', 
-                            'Phl-com3-Shv2-9-K34', 'Php-Angc-K3-1', 'Php-Angc-K3-8', 
-                            'Php-Ctm-K-1-12-56', 'Php-Ctm-Shv1-2-K3', 'Php-nta4-shv016309-k2-1-7', 
-                            'Spp-210-K1-3-3-5', 'Spp-210-K1-3-3-6', 'Spp-K1-1-2-6']
+colors = [tuple([random.randint(0, 255) for _ in range(3)]) for _ in range(100)] #for bbox plotting
 
 templates = Jinja2Templates(directory = 'app/templates')
 
@@ -68,41 +63,23 @@ def images_inference(request: Request,
 
     img_str_list = []
     #plot bboxes on the image
-    for id, (img, bbox_list) in enumerate(zip(img_batch, json_results)):
-        # print(bbox_list) # [{'class': 0, 'class_name': 'person', 'bbox': [1120, 356, 1289, 646], 'confidence': 0.29738280177116394}]
-        send_requests = False
-        request_template = {"image_name": "", "max_percent": 0, "text_message": "", "camera_name": ""}
+    for id, (img, bbox_list) in enumerate(zip(img_batch, json_results)): #TODO fixme not working due to yolov5/detect_video.py infer
         for obj in bbox_list:
             label = f'{obj["class_name"]} {obj["confidence"]:.2f}'
-            if model_name in yolo.yolo.zones.keys():
-                draw_poly(img, yolo.yolo.zones[model_name])
-                inter_percent, text_message = yolo.yolo.get_alert(model_name, obj['bbox'])
-                if inter_percent > 0.15:
-                    plot_one_box(obj['bbox'], img, label=label, color=(0,0,255), line_thickness=3)
-                    send_requests = True
-
-                    if inter_percent > request_template["max_percent"]: # filling template 
-                        request_template["max_percent"] = inter_percent
-                        request_template["text_message"] = text_message
-                    request_template["camera_name"] = model_name
-
-                else:
-                    plot_one_box(obj['bbox'], img, label=label, color=(0,255,0), line_thickness=3)
-            else:
-                plot_one_box(obj['bbox'], img, label=label, 
+            plot_one_box(obj['bbox'], img, label=label, 
                     color=colors[int(obj['class'])], line_thickness=3)
 
-        if send_requests:
-            imgb = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-            out_img = BytesIO()
-            imgb.save(out_img, format='jpeg')
-            out_img.seek(0)
+        # if send_requests:
+        #     imgb = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        #     out_img = BytesIO()
+        #     imgb.save(out_img, format='jpeg')
+        #     out_img.seek(0)
 
-            im_name = minio_post(out_img, minio)
-            request_template['image_name'] = im_name
+        #     im_name = minio_post(out_img, minio)
+        #     request_template['image_name'] = im_name
 
-            message = kafka_post(request_template, kafka)
-            print(message)
+        #     message = kafka_post(request_template, kafka)
+        #     print(message)
 
         img_str_list.append(base64EncodeImage(img))
 
