@@ -29,6 +29,8 @@ colors = [tuple([random.randint(0, 255) for _ in range(3)]) for _ in range(100)]
 
 templates = Jinja2Templates(directory = 'app/templates')
 
+model_selection_options = ['inp1', 'inp2', '...']
+
 @router.get("")
 def home(request: Request):
     ''' Returns html jinja2 template render for home page form

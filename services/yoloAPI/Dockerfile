@@ -27,7 +27,5 @@ RUN pip install shapely
 # Copy source code
 COPY ./app ./app
 
-COPY ./danger_zones ./danger_zones
-
 # Run the application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
